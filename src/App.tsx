@@ -59,6 +59,39 @@ const ColumnList: React.FC<ColumnListProps> = ({ values }) => {
     setIsSorting(false);
   };
 
+  const partition = async (arr: number[], low: number, high: number) => {
+    const pivot = arr[high];
+    let i = low - 1;
+    for(let j = low; j < high; j++) {
+      if(arr[j] < pivot){
+        i++;
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+        if (withDelay) {
+          await sleep(delay);
+        }
+        setSortedValues([...arr]);
+      }
+    }
+    [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
+
+    return i + 1; 
+  }
+
+  const quickSort = async (arr: number[], low: number = 0, high: number = arr.length - 1) => {
+    if (low < high) {
+      const partitionIndex = await partition(arr, low, high);
+      await quickSort(arr, low, partitionIndex - 1);
+      await quickSort(arr, partitionIndex + 1, high);
+    }
+    return arr;
+  }
+
+  const handleQuickSort = async () => {
+    setIsSorting(true);
+    setSortedValues(await quickSort([...values], 0, values.length - 1));
+    setIsSorting(false);
+  }
+
   const mergeSort = async (
     arr: number[],
     left: number = 0,
@@ -130,7 +163,8 @@ const ColumnList: React.FC<ColumnListProps> = ({ values }) => {
 
   const SortAlgorithms: any = {
     bubbleSort: { name: "Bubble Sort", sortFunc: bubbleSort },
-    mergeSort: {name: "Merge Sort", sortFunc: handleMergeSort}
+    mergeSort: {name: "Merge Sort", sortFunc: handleMergeSort},
+    quickSort: {name: "Quick Sort", sortFunc: handleQuickSort}
   };
 
   const handleReset = () => {
